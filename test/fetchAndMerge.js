@@ -43,5 +43,50 @@ QUnit.module("Тестируем функцию fetchAndMerge", function() {
         const result = await fetchAndMergeData(urls);
         assert.deepEqual(result, {}, "Должно возвращать пустой объект при ошибке fetch");
     });
+    QUnit.test('Пустой массив URL', async (assert) => {
+        const result = await fetchAndMergeData([]);
+        assert.deepEqual(result, {});
+    });
+
+    QUnit.test('Удаление дубликатов', async (assert) => {
+        window.fetch = (url) => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(
+                url === 'a' ? { id: 1, city: 'Msk' } : { id: 1, city: 'Msk' }
+            )
+        });
+
+        const result = await fetchAndMergeData(['a', 'b']);
+        assert.deepEqual(result, { id: [1], city: ['Msk'] });
+    });
+
+    QUnit.test('Игнорирование null/undefined', async (assert) => {
+        window.fetch = () => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ a: null, b: undefined, c: 42 })
+        });
+
+        const result = await fetchAndMergeData(['url']);
+        assert.deepEqual(result, { c: [42] });
+    });
+
+    QUnit.test('Один URL', async (assert) => {
+        window.fetch = () => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ x: 10, y: 20 })
+        });
+
+        const result = await fetchAndMergeData(['url']);
+        assert.deepEqual(result, { x: [10], y: [20] });
+    });
+
+    QUnit.test('Частичная ошибка', async (assert) => {
+        window.fetch = (url) => url === 'bad'
+            ? Promise.reject()
+            : Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1 }) });
+
+        const result = await fetchAndMergeData(['bad', 'good']);
+        assert.deepEqual(result, { id: [1] });
+    });
 });
 
