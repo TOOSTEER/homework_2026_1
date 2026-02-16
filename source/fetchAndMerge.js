@@ -1,5 +1,11 @@
 'use strict';
 
+/**
+ * Загружает JSON с нескольких URL и объединяет в один объект.
+ * Повторяющиеся ключи объединяются в массивы уникальных значений.
+ * @param {string[]} urls - Массив URL для загрузки
+ * @returns {Promise<Object>} Объект с объединёнными данными
+ */
 const fetchAndMergeData = async (urls) => {
     if (!Array.isArray(urls) || urls.length === 0) return {};
 

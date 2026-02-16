@@ -1,9 +1,9 @@
-
+/* eslint-disable require-jsdoc */
 
 'use strict';
 
-QUnit.module("Testing fetchAndMerge function", function () {
-    QUnit.test("Returns merged object from multiple URLs", async function (assert) {
+QUnit.module("Тестируем функцию fetchAndMerge", function () {
+    QUnit.test("Возвращает объект при полученных данных", async function (assert) {
         const urls = [
             'https://vk.example.com/vkid',
             'https://mailru.example.com/mailid',
@@ -29,10 +29,10 @@ QUnit.module("Testing fetchAndMerge function", function () {
         };
 
         const result = await fetchAndMergeData(urls);
-        assert.deepEqual(result, expected, "should correctly merge data from different URLs");
+        assert.deepEqual(result, expected, "Должно правильно объединять данные с разных URL");
     });
 
-    QUnit.test("Handles fetch errors gracefully", async function (assert) {
+    QUnit.test("Работает правильно при ошибках fetch", async function (assert) {
         const urls = [
             'https://vk.example.com/mailru',
             'https://vk.example.com/byte'
@@ -41,53 +41,52 @@ QUnit.module("Testing fetchAndMerge function", function () {
         window.fetch = () => Promise.reject(new Error("Network error"));
 
         const result = await fetchAndMergeData(urls);
-        assert.deepEqual(result, {}, "should return empty object on fetch error");
+        assert.deepEqual(result, {}, "Должно возвращать пустой объект при ошибке fetch");
     });
 
-
-    QUnit.test('Empty URL array', async (assert) => {
+    QUnit.test("Работает с пустым массивом URL", async (assert) => {
         const result = await fetchAndMergeData([]);
-        assert.deepEqual(result, {}, 'empty array → empty object');
+        assert.deepEqual(result, {}, "Пустой массив → пустой объект");
     });
 
-    QUnit.test('Removes duplicate values', async (assert) => {
+    QUnit.test("Удаляет дублирующиеся значения", async (assert) => {
         window.fetch = (url) => Promise.resolve({
             ok: true,
             json: () => Promise.resolve(
-                url === 'a' ? { id: 1, city: 'Msk' } : { id: 1, city: 'Msk' }
+                url === 'a' ? { id: 1, city: 'Москва' } : { id: 1, city: 'Москва' }
             )
         });
 
         const result = await fetchAndMergeData(['a', 'b']);
-        assert.deepEqual(result, { id: [1], city: ['Msk'] }, 'duplicates removed');
+        assert.deepEqual(result, { id: [1], city: ['Москва'] }, "Дубликаты должны удаляться");
     });
 
-    QUnit.test('Ignores null and undefined', async (assert) => {
+    QUnit.test("Игнорирует null и undefined", async (assert) => {
         window.fetch = () => Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ a: null, b: undefined, c: 42 })
         });
 
         const result = await fetchAndMergeData(['url']);
-        assert.deepEqual(result, { c: [42] }, 'null/undefined ignored');
+        assert.deepEqual(result, { c: [42] }, "null/undefined игнорируются");
     });
 
-    QUnit.test('Single URL', async (assert) => {
+    QUnit.test("Работает с одним URL", async (assert) => {
         window.fetch = () => Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ x: 10, y: 20 })
         });
 
         const result = await fetchAndMergeData(['url']);
-        assert.deepEqual(result, { x: [10], y: [20] }, 'works with one URL');
+        assert.deepEqual(result, { x: [10], y: [20] }, "Один URL работает корректно");
     });
 
-    QUnit.test('Partial fetch failure', async (assert) => {
+    QUnit.test("Частичная ошибка загрузки", async (assert) => {
         window.fetch = (url) => url === 'bad'
             ? Promise.reject()
             : Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1 }) });
 
         const result = await fetchAndMergeData(['bad', 'good']);
-        assert.deepEqual(result, { id: [1] }, 'successful URL still processed');
+        assert.deepEqual(result, { id: [1] }, "Успешные URL обрабатываются даже при частичных ошибках");
     });
 });
