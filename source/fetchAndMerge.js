@@ -5,7 +5,6 @@
  * @param {string[]} urls - Массив URL-адресов для загрузки
  * @returns {Promise<Object>} Объект с объединенными данными
  */
-
 const fetchAndMergeData = async (urls) => {
     if (!Array.isArray(urls) || urls.length === 0) return {};
 
