@@ -13,7 +13,7 @@ QUnit.module("Тестируем функцию fetchAndMerge", function () {
             "id": [1, 2],
             "name": ["Олег", "Мария"],
             "surname": ["Петров", "Иванова"],
-            "status": ["Дуров, верни стену!"],
+            "status": "Дуров, верни стену!"
         };
 
         window.fetch = (url) => {
@@ -58,17 +58,17 @@ QUnit.module("Тестируем функцию fetchAndMerge", function () {
         });
 
         const result = await fetchAndMergeData(['a', 'b']);
-        assert.deepEqual(result, { id: [1], city: ['Москва'] }, "Дубликаты должны удаляться");
+        assert.deepEqual(result, { id: 1, city: 'Москва' }, "Дубликаты должны удаляться");
     });
 
-    QUnit.test("Игнорирует null и undefined", async (assert) => {
+    QUnit.test("Игнорирует undefined, но сохраняет null", async (assert) => {
         window.fetch = () => Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ a: null, b: undefined, c: 42 })
         });
 
         const result = await fetchAndMergeData(['url']);
-        assert.deepEqual(result, { c: [42] }, "null/undefined игнорируются");
+        assert.deepEqual(result, { a: null, c: 42 }, "null сохраняется, undefined игнорируется");
     });
 
     QUnit.test("Работает с одним URL", async (assert) => {
@@ -78,7 +78,7 @@ QUnit.module("Тестируем функцию fetchAndMerge", function () {
         });
 
         const result = await fetchAndMergeData(['url']);
-        assert.deepEqual(result, { x: [10], y: [20] }, "Один URL работает корректно");
+        assert.deepEqual(result, { x: 10, y: 20 }, "Один URL работает корректно");
     });
 
     QUnit.test("Частичная ошибка загрузки", async (assert) => {
@@ -87,6 +87,6 @@ QUnit.module("Тестируем функцию fetchAndMerge", function () {
             : Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1 }) });
 
         const result = await fetchAndMergeData(['bad', 'good']);
-        assert.deepEqual(result, { id: [1] }, "Успешные URL обрабатываются даже при частичных ошибках");
+        assert.deepEqual(result, { id: 1 }, "Успешные URL обрабатываются даже при частичных ошибках");
     });
 });
